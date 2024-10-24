@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ambiente virtual
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+env_recruitment_back/
+
+# Arquivos de banco de dados
+*.sqlite3
+
+# Arquivos de configuração do Django
+*.log
+
+# Configurações do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de teste
+.coverage
+*.coverage
+nosetests.xml
+test.xml
+coverage.xml
+
+# IDEs
+.idea/
+.vscode/
+
+# Dependências
+*.egg-info/
+dist/
+build/

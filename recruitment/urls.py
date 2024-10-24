@@ -1,22 +1,30 @@
-"""
-URL configuration for recruitment project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from candidatos.views import (
+    CandidatoViewSet,
+    EnderecoViewSet,
+    ContatoViewSet,
+    ExperienciaProfissionalViewSet,
+    FormacaoAcademicaViewSet,
+    HabilidadesViewSet,
+    CertificacaoViewSet,
+)
 
+# Criando um roteador para o DRF
+router = DefaultRouter()
+router.register(r"candidatos", CandidatoViewSet)  # Rotas para Candidato
+router.register(r"endereco", EnderecoViewSet)  # Rotas para Endereço
+router.register(r"contato", ContatoViewSet)  # Rotas para Contato
+router.register(
+    r"experiencias", ExperienciaProfissionalViewSet
+)  # Rotas para Experiência Profissional
+router.register(r"formacoes", FormacaoAcademicaViewSet)  # Rotas para Formação Acadêmica
+router.register(r"habilidades", HabilidadesViewSet)  # Rotas para Habilidades
+router.register(r"certificacoes", CertificacaoViewSet)  # Rotas para Certificações
+
+# URL patterns no projeto principal
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),  # Rota para o admin
+    path("api/", include(router.urls)),  # Inclui todas as rotas do DRF
 ]

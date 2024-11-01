@@ -1,153 +1,84 @@
 from django.db import models
+from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 
-
-class Candidato(models.Model):
-    nome = models.CharField(
-        max_length=100
-    )  # Validar que não é vazio e não tem caracteres especiais
-    sobrenome = models.CharField(max_length=100, blank=True)  # Sobrenome opcional
-    data_nascimento = models.DateField()  # Validar data no passado (maior de idade)
-    cpf = models.CharField(max_length=11, unique=True)  # Validar formato e dígitos
-    rg = models.CharField(max_length=20, unique=True)  # Validar formato e dígitos
-    nacionalidade = models.CharField(max_length=50, null=True, blank=True)  # Opcional
-    estado_civil = models.CharField(
-        max_length=20,
-        choices=[
-            ("solteiro", "Solteiro(a)"),
-            ("casado", "Casado(a)"),
-            ("divorciado", "Divorciado(a)"),
-            ("viuvo", "Viúvo(a)"),
-            ("união_estável", "União Estável"),
-        ],
-        null=True,
-        blank=True,
-    )
-
-    def __str__(self):
-        return f"{self.nome} {self.sobrenome}"
+telefone_validator = RegexValidator(
+    regex=r"^\+?1?\d{9,15}$", message="O telefone deve ter 9 a 15 dígitos."
+)
 
 
 class Endereco(models.Model):
-    candidato = models.OneToOneField(
-        Candidato, on_delete=models.CASCADE, related_name="endereco"
-    )
-    rua = models.CharField(max_length=255)  # Não permitir vazio
-    numero = models.CharField(
-        max_length=10, null=True, blank=True
-    )  # Validar se é numérico
-    complemento = models.CharField(max_length=100, null=True, blank=True)
-    cep = models.CharField(
-        max_length=10, null=True, blank=True
-    )  # Validar formato (#####-###)
-    cidade = models.CharField(max_length=50, null=True, blank=True)
-    estado = models.CharField(max_length=50, null=True, blank=True)
-    pais = models.CharField(
-        max_length=50, default="Brasil"
-    )  # Definir como Brasil por padrão
-
-    def __str__(self):
-        return f"{self.rua}, {self.numero} - {self.cidade}/{self.estado}"
-
-
-class Contato(models.Model):
-    candidato = models.OneToOneField(
-        Candidato, on_delete=models.CASCADE, related_name="contato"
-    )
-    email = models.EmailField(unique=True)  # Email com validação interna do Django
-    telefone_celular = models.CharField(
-        max_length=20
-    )  # Validar formato (##) ####-#### ou similar
-    telefone_fixo = models.CharField(
-        max_length=20, null=True, blank=True
-    )  # Validação similar ao celular
-
-    def __str__(self):
-        return f"{self.candidato.nome} - {self.email}"
+    rua = models.CharField(max_length=100)
+    numero = models.CharField(max_length=100)
+    complemento = models.CharField(max_length=100, blank=True)
+    cidade = models.CharField(max_length=100)
+    estado = models.CharField(max_length=100)
+    cep = models.CharField(max_length=15)
 
 
 class ExperienciaProfissional(models.Model):
-    candidato = models.ForeignKey(
-        Candidato, on_delete=models.CASCADE, related_name="experiencias"
-    )
-    cargo = models.CharField(max_length=100)  # Não permitir vazio
-    empresa = models.CharField(max_length=100)  # Não permitir vazio
-    data_inicio = models.DateField()  # Validar data no passado
-    data_fim = models.DateField(
-        null=True, blank=True
-    )  # Validar que seja depois de `data_inicio`
-    descricao = models.TextField(blank=True)
-    responsavel = models.CharField(max_length=100, null=True, blank=True)
-    contato_responsavel = models.CharField(
-        max_length=20, null=True, blank=True
-    )  # Validar telefone
-    habilidades_utilizadas = models.TextField(blank=True)
+    cargo = models.CharField(max_length=100)
+    empresa = models.CharField(max_length=100)
+    descricao = models.TextField()
+    periodo_inicio = models.DateField()
+    periodo_fim = models.DateField()
 
-    def __str__(self):
-        return f"{self.candidato.nome} - {self.cargo} na {self.empresa}"
+    def clean(self):
+        if (
+            self.periodo_inicio
+            and self.periodo_fim
+            and self.periodo_inicio > self.periodo_fim
+        ):
+            raise ValidationError("A data de início deve ser anterior à data de fim.")
 
 
 class FormacaoAcademica(models.Model):
-    candidato = models.ForeignKey(
-        Candidato, on_delete=models.CASCADE, related_name="formacoes"
-    )
-    instituicao = models.CharField(max_length=100)  # Não permitir vazio
-    curso = models.CharField(max_length=100)  # Não permitir vazio
-    data_inicio = models.DateField()  # Validar data no passado
-    data_fim = models.DateField(
-        null=True, blank=True
-    )  # Validar que seja depois de `data_inicio`
-    nota_final = models.DecimalField(
-        max_digits=4, decimal_places=2, null=True, blank=True
-    )  # Validar que seja 0-10
-    tipo = models.CharField(
-        max_length=20,
-        choices=[
-            ("tecnico", "Técnico"),
-            ("graduacao", "Graduação"),
-            ("pos_graduacao", "Pós-graduação"),
-            ("especializacao", "Especialização"),
-            ("mestrado", "Mestrado"),
-            ("doutorado", "Doutorado"),
-        ],
-        null=True,
-        blank=True,
-    )
+    instituicao = models.CharField(max_length=100)
+    curso = models.CharField(max_length=100)
+    periodo_inicio = models.DateField()
+    periodo_fim = models.DateField()
 
-    def __str__(self):
-        return f"{self.candidato.nome} - {self.curso} na {self.instituicao}"
+    def clean(self):
+        if (
+            self.periodo_inicio
+            and self.periodo_fim
+            and self.periodo_inicio > self.periodo_fim
+        ):
+            raise ValidationError("A data de início deve ser anterior à data de fim.")
 
 
-class Habilidades(models.Model):
-    candidato = models.ForeignKey(
-        Candidato, on_delete=models.CASCADE, related_name="habilidades"
+class Candidato(models.Model):
+    nome = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    telefone = models.CharField(max_length=15, validators=[telefone_validator])
+    cargo = models.CharField(max_length=100)
+    data_nascimento = models.DateField()
+    nacionalidade = models.CharField(max_length=50)
+    estado_civil = models.CharField(max_length=20)
+    skills = models.TextField(blank=True)
+    languages = models.TextField(blank=True)
+    cover_letter = models.TextField(blank=True)
+    endereco = models.OneToOneField(
+        Endereco, on_delete=models.CASCADE, null=True, blank=True
     )
-    nome = models.CharField(max_length=100)  # Não permitir vazio
-    nivel = models.CharField(
-        max_length=20,
-        choices=[
-            ("basico", "Básico"),
-            ("intermediario", "Intermediário"),
-            ("avancado", "Avançado"),
-            ("expert", "Expert"),
-        ],
-        null=True,
-        blank=True,
+    experiencias_profissionais = models.ManyToManyField(
+        ExperienciaProfissional, through="CandidatoExperienciaProfissional", blank=True
+    )
+    formacoes_academicas = models.ManyToManyField(
+        FormacaoAcademica, through="CandidatoFormacaoAcademica", blank=True
     )
 
-    def __str__(self):
-        return f"{self.nome} - {self.nivel}"
+
+# Modelos intermediários para relacionamentos ManyToMany
 
 
-class Certificacao(models.Model):
-    candidato = models.ForeignKey(
-        Candidato, on_delete=models.CASCADE, related_name="certificacoes"
+class CandidatoExperienciaProfissional(models.Model):
+    candidato = models.ForeignKey(Candidato, on_delete=models.CASCADE)
+    experiencia_profissional = models.ForeignKey(
+        ExperienciaProfissional, on_delete=models.CASCADE
     )
-    nome_certificacao = models.CharField(max_length=100)  # Não permitir vazio
-    instituicao_emissora = models.CharField(max_length=100)  # Não permitir vazio
-    data_emissao = models.DateField()  # Validar que seja no passado
-    data_validade = models.DateField(
-        null=True, blank=True
-    )  # Se fornecido, deve ser após `data_emissao`
 
-    def __str__(self):
-        return f"{self.nome_certificacao} - {self.instituicao_emissora}"
+
+class CandidatoFormacaoAcademica(models.Model):
+    candidato = models.ForeignKey(Candidato, on_delete=models.CASCADE)
+    formacao_academica = models.ForeignKey(FormacaoAcademica, on_delete=models.CASCADE)

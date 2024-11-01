@@ -1,38 +1,11 @@
-# views.py
-from rest_framework import viewsets
-from .models import (
-    Candidato,
-    Endereco,
-    Contato,
-    ExperienciaProfissional,
-    FormacaoAcademica,
-    Habilidades,
-    Certificacao,
-)
+from rest_framework import viewsets, generics
+from .models import Candidato, ExperienciaProfissional, FormacaoAcademica
 from .serializers import (
     CandidatoSerializer,
-    EnderecoSerializer,
-    ContatoSerializer,
+    CandidatoResumoSerializer,
     ExperienciaProfissionalSerializer,
     FormacaoAcademicaSerializer,
-    HabilidadesSerializer,
-    CertificacaoSerializer,
 )
-
-
-class CandidatoViewSet(viewsets.ModelViewSet):
-    queryset = Candidato.objects.all()
-    serializer_class = CandidatoSerializer
-
-
-class EnderecoViewSet(viewsets.ModelViewSet):
-    queryset = Endereco.objects.all()
-    serializer_class = EnderecoSerializer
-
-
-class ContatoViewSet(viewsets.ModelViewSet):
-    queryset = Contato.objects.all()
-    serializer_class = ContatoSerializer
 
 
 class ExperienciaProfissionalViewSet(viewsets.ModelViewSet):
@@ -45,11 +18,11 @@ class FormacaoAcademicaViewSet(viewsets.ModelViewSet):
     serializer_class = FormacaoAcademicaSerializer
 
 
-class HabilidadesViewSet(viewsets.ModelViewSet):
-    queryset = Habilidades.objects.all()
-    serializer_class = HabilidadesSerializer
+class CandidatoListAllView(generics.ListAPIView):
+    queryset = Candidato.objects.all()
+    serializer_class = CandidatoSerializer
 
 
-class CertificacaoViewSet(viewsets.ModelViewSet):
-    queryset = Certificacao.objects.all()
-    serializer_class = CertificacaoSerializer
+class CandidatoListView(generics.ListAPIView):
+    queryset = Candidato.objects.all()
+    serializer_class = CandidatoResumoSerializer
